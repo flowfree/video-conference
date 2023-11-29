@@ -1,10 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { StreamControls } from '../components'
 
 export default function Page() {
-  const [showVideo, setShowVideo] = useState(true)
+  const [videoHeight, setVideoHeight] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const height = containerRef.current.clientHeight
+      setVideoHeight(height - (height / 3))
+    }
+  }, [containerRef])
 
   return (
     <div className="p-4 w-full h-full flex flex-col">
