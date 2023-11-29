@@ -16,27 +16,22 @@ export default function Page() {
   return (
     <div className="p-4 w-full h-full flex flex-col">
 
-      <div className="grow flex flex-col justify-center gap-4">
-        <div className="basis-1/2 flex flex-row gap-4">
-          <div className="flex-1 bg-gray-100 flex items-center justify-center">
+      <div className="grow flex items-center justify-center">
+        <div className="grow grid grid-cols-3 gap-4">
+          <div className="h-[300px] bg-gray-100 flex items-center justify-center">
             <img src="/img/bg-1.jpg" className="h-full w-full object-cover" alt="" />
           </div>
-          <div className="flex-1 bg-gray-100 flex items-center justify-center">
+          <div className="h-[300px] bg-gray-100 flex items-center justify-center">
             <img src="/img/bg-2.jpg" className="h-full w-full object-cover" alt="" />
           </div>
-          <div className="flex-1 bg-gray-100 flex items-center justify-center">
+          <div className="h-[300px] bg-gray-100 flex items-center justify-center">
             <img src="/img/bg-3.jpg" className="h-full w-full object-cover" alt="" />
           </div>
-        </div>
-        <div className="basis-1/2 flex flex-row gap-4">
-          <div className="flex-1 bg-gray-100 flex items-center justify-center">
-            <img src="/img/bg-1.jpg" className="h-full w-full object-cover" alt="" />
+          <div className="h-[300px] bg-gray-100 flex items-center justify-center">
+            <img src="/img/bg-4.jpg" className="h-full w-full object-cover" alt="" />
           </div>
-          <div className="flex-1 bg-gray-100 flex items-center justify-center">
-            <img src="/img/bg-2.jpg" className="h-full w-full object-cover" alt="" />
-          </div>
-          <div className="flex-1 bg-gray-100 flex items-center justify-center">
-            <img src="/img/bg-3.jpg" className="h-full w-full object-cover" alt="" />
+          <div className="h-[300px] bg-gray-100 flex items-center justify-center">
+            <img src="/img/bg-5.jpg" className="h-full w-full object-cover" alt="" />
           </div>
         </div>
       </div>

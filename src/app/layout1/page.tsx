@@ -15,15 +15,12 @@ export default function Page() {
 
   return (
     <div className="p-4 w-full h-full flex flex-col">
+
       <div className="grow flex items-center justify-center">
-        <div className="max-w-[900px] max-h-[550px] flex items-center justify-center overflow-hidden">
-          {showVideo ? (
-            <img src="/img/bg-1.jpg" className="h-full w-auto object-cover" alt="" />
-          ) : (
-            <div className="w-[100px] h-[100px] flex items-center justify-center rounded-full bg-gray-200 text-4xl font-bold">
-              N
-            </div>
-          )}
+        <div className="grow grid grid-cols-1 gap-4 max-w-[900px]">
+          <div className="h-[550px] bg-gray-100 flex items-center justify-center">
+            <img src="/img/bg-1.jpg" className="h-full w-full object-cover" alt="" />
+          </div>
         </div>
       </div>
 
