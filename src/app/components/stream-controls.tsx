@@ -2,8 +2,10 @@ import {
   MicrophoneIcon,
   VideoCameraIcon,
   HandRaisedIcon,
-  PhoneIcon 
+  PhoneIcon,
 } from '@heroicons/react/24/solid'
+
+import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/outline'
 
 export function StreamControls() {
   return (
@@ -26,6 +28,9 @@ export function StreamControls() {
         </button>
       </div>
       <div className="basis-1/3 flex flex-row gap-2 justify-end">
+        <button className="hover:text-indigo-500">
+          <ChatBubbleLeftEllipsisIcon className="w-8 h-6" />
+        </button>
       </div>
     </div>
   )

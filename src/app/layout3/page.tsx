@@ -10,23 +10,25 @@ export default function Page() {
   useEffect(() => {
     if (containerRef.current) {
       const height = containerRef.current.clientHeight
-      setVideoHeight(height - (height / 3))
+      setVideoHeight(height / 2)
     }
   }, [containerRef])
 
   return (
     <div className="p-4 w-full h-full flex flex-col">
 
-      <div className="grow flex items-center justify-center">
-        <div className="grow grid grid-cols-3 gap-4">
-          <div className="h-[350px] bg-gray-100 flex items-center justify-center">
-            <img src="/img/bg-1.jpg" className="h-full w-full object-cover" alt="" />
-          </div>
-          <div className="h-[350px] bg-gray-100 flex items-center justify-center">
-            <img src="/img/bg-2.jpg" className="h-full w-full object-cover" alt="" />
-          </div>
-          <div className="h-[350px] bg-gray-100 flex items-center justify-center">
-            <img src="/img/bg-3.jpg" className="h-full w-full object-cover" alt="" />
+      <div ref={containerRef} className="grow flex flex-row gap-4">
+        <div className="grow flex items-center justify-center">
+          <div className="grow grid grid-cols-3 gap-4">
+            <div className="bg-gray-100 flex items-center justify-center" style={{height: `${videoHeight}px`}}>
+              <img src="/img/bg-1.jpg" className="h-full w-full object-cover" alt="" />
+            </div>
+            <div className="bg-gray-100 flex items-center justify-center" style={{height: `${videoHeight}px`}}>
+              <img src="/img/bg-2.jpg" className="h-full w-full object-cover" alt="" />
+            </div>
+            <div className="bg-gray-100 flex items-center justify-center" style={{height: `${videoHeight}px`}}>
+              <img src="/img/bg-3.jpg" className="h-full w-full object-cover" alt="" />
+            </div>
           </div>
         </div>
       </div>
