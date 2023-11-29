@@ -10,7 +10,7 @@ export default function Page() {
   useEffect(() => {
     if (containerRef.current) {
       const height = containerRef.current.clientHeight
-      setVideoHeight(height - (height / 4))
+      setVideoHeight(height - 48)
     }
   }, [containerRef])
 

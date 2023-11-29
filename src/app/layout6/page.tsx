@@ -38,7 +38,7 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="shrink-0 w-[300px] my-4 p-2 rounded-md border-2 border-indigo-200">
+        <div className="shrink-0 w-[300px] my-4 rounded-md border-2 border-indigo-200">
         </div>
       </div>
 
