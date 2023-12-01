@@ -10,9 +10,13 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.0.18",
+    "mime": "^4.0.0",
     "next": "14.0.3",
+    "peerjs": "^1.5.1",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2"
   },
   "devDependencies": {
     "@types/node": "^20",

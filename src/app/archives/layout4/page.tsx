@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { StreamControls } from '../components'
+import { StreamControls } from '../../components'
 
 export default function Page() {
   const [videoHeight, setVideoHeight] = useState(0)
