@@ -8,12 +8,12 @@ export default function Page() {
   const [videoHeight, setVideoHeight] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const videoStreams = [
-    '/api/stream/1',
-    '/api/stream/2',
-    '/api/stream/3',
-    '/api/stream/4',
-    '/api/stream/5',
+  const videoStreams: string[] = [
+    // '/api/stream/1',
+    // '/api/stream/2',
+    // '/api/stream/3',
+    // '/api/stream/4',
+    // '/api/stream/5',
   ]
 
   useEffect(() => {

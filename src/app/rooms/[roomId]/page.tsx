@@ -13,11 +13,38 @@ export default function Page({
   const [userStream, setUserStream] = useState<MediaStream|null>(null)
   const [peer, setPeer] = useState<Peer>()
   const [videoStreams, setVideoStreams] = useState<MediaStream[]>([])
+  const [username, setUsername] = useState('')
+  const [userId, setUserId] = useState(0)
 
   const [numCols, setNumCols] = useState(1)
   const [videoHeight, setVideoHeight] = useState(0)
+  const [windowResized, setWindowResized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Generate random username and ID and handle window resizes 
+  useEffect(() => {
+    let chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    let username = ''
+    let userId = 0
+    for (let i = 0; i < 5; i++) {
+        const index = Math.floor(Math.random() * chars.length);
+        username += chars[index]
+        userId += index
+    }
+    setUsername(username)
+    setUserId(userId)
+
+    function handleResize() {
+      setWindowResized(true)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  // Setup the WebRTC and connect to the signaling server on start
   useEffect(() => {
     async function initApp() {
       const userStream = await navigator.mediaDevices.getUserMedia({
@@ -30,7 +57,6 @@ export default function Page({
 
       peer
         .on('open', peerId => {
-          console.log(peerId)
         })
         .on('call', call => { 
           call.answer(userStream)
@@ -71,9 +97,9 @@ export default function Page({
     if (count === 1) {
       setVideoHeight(height -= 48)
       setNumCols(1)
-    } else if (count === 2) {
+    } else if (count <= 2) {
       setVideoHeight(height - (height / 3))
-      setNumCols(2)
+      setNumCols(count)
     } else if (count === 3) {
       setVideoHeight(height / 2)
       setNumCols(3)
@@ -84,7 +110,9 @@ export default function Page({
       setVideoHeight((height - 48) / 2)
       setNumCols(3)
     }
-  }, [videoStreams, containerRef])
+
+    setWindowResized(false)
+  }, [videoStreams, containerRef, windowResized])
 
   return (
     <div className="p-4 w-full h-full flex flex-col">
