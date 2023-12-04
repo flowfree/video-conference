@@ -25,7 +25,7 @@ export function StreamControls() {
         <button className="w-[48px] h-[48px] flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 font-bold">
           <HandRaisedIcon className="w-5 h-5" />
         </button>
-        <button className="w-[48px] h-[48px] flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 font-bold">
+        <button className="w-[48px] h-[48px] flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 font-bold">
           <PhoneIcon className="w-8 h-6 rotate-[135deg]" />
         </button>
       </div>
