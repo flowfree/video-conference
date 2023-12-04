@@ -192,7 +192,7 @@ export default function Page({
                   autoPlay
                   muted
                 />
-                <span className="absolute bottom-2 left-2 text-white font-bold">
+                <span className="absolute bottom-2 left-2 px-4 rounded-full bg-gray-800/50 text-white font-bold">
                   {videoStream.username}
                 </span>
               </div>
