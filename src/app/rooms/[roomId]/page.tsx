@@ -1,19 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import io from 'socket.io-client'
 import { Peer } from 'peerjs'
 import { StreamControls } from '@/app/components'
-
-interface User {
-  peerId: string
-  userId: string
-  username: string
-}
-
-interface UserStream extends User {
-  stream?: MediaStream
-}
+import { UserStreams } from '../components'
+import { type User, type UserStream } from '@/app/lib/types'
 
 export default function Page({
   params: { roomId }
@@ -24,14 +16,9 @@ export default function Page({
   const [userStreams, setUserStreams] = useState<UserStream[]>([])
   const [myStream, setMyStream] = useState<MediaStream|null>(null)
   const [username, setUsername] = useState('')
-  const [userId, setUserId] = useState(0)
+  const [userId, setUserId] = useState('')
   const [leavingUser, setLeavingUser] = useState<User|null>(null)
-
   const [peer, setPeer] = useState<Peer>()
-  const [numCols, setNumCols] = useState(1)
-  const [videoHeight, setVideoHeight] = useState(0)
-  const [windowResized, setWindowResized] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   // On page load,
   // Generate random username and ID and handle window resizes 
@@ -45,16 +32,7 @@ export default function Page({
         userId += index
     }
     setUsername(username)
-    setUserId(userId)
-
-    function handleResize() {
-      setWindowResized(true)
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('resize', handleResize)
-    }
+    setUserId(`${userId}`)
   }, [])
 
   // After user ID and username are set,
@@ -62,7 +40,7 @@ export default function Page({
   useEffect(() => {
     if (!userId || !username) return 
 
-    async function initApp() {
+    async function initMyStream() {
       const userStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true
@@ -94,7 +72,7 @@ export default function Page({
       setPeer(peer)
     }
 
-    initApp()
+    initMyStream()
 
     return () => {
       myStream?.getTracks().forEach(track => track.stop())
@@ -132,36 +110,6 @@ export default function Page({
     })
   }, [users])
 
-  // When the guest list arrived or window has been resized,
-  // Calculate and setup the layout
-  useEffect(() => {
-    if (!containerRef.current) {
-      return
-    }
-
-    let height = containerRef.current!.clientHeight
-    let count = users.length
-
-    if (count === 1) {
-      setVideoHeight(height -= 48)
-      setNumCols(1)
-    } else if (count <= 2) {
-      setVideoHeight(height - (height / 3))
-      setNumCols(count)
-    } else if (count === 3) {
-      setVideoHeight(height / 2)
-      setNumCols(3)
-    } else if (count === 4) {
-      setVideoHeight((height - 48) / 2)
-      setNumCols(2)
-    } else {
-      setVideoHeight((height - 48) / 2)
-      setNumCols(3)
-    }
-
-    setWindowResized(false)
-  }, [users, windowResized])
-
   // When a user is leaving,
   // Remove the video streams from page
   useEffect(() => {
@@ -177,36 +125,8 @@ export default function Page({
 
   return (
     <div className="p-4 w-full h-full flex flex-col">
-
-      <div ref={containerRef} className="grow flex flex-row gap-4">
-        <div className="grow flex items-center justify-center">
-          <div className={`grow grid grid-cols-${numCols} gap-4 ` + (numCols === 1 ? 'max-w-[900px]' : '')}>
-            {userStreams.map(userStream => (
-              <div 
-                key={userStream.userId} 
-                className="relative bg-gray-100 flex items-center justify-center" 
-                style={{height: `${videoHeight}px`}}
-              >
-                <video 
-                  ref={(video) => {
-                    if (video) video.srcObject = userStream.stream || null
-                  }}
-                  className="w-full h-full scale-x-[-1] object-cover"
-                  autoPlay
-                  muted
-                />
-                <span className="absolute bottom-2 left-2 px-2 rounded-full bg-gray-800/50 text-white font-bold">
-                  {userStream.username}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <StreamControls />
-      </div>
+      <UserStreams userId={userId} numUsers={users.length} userStreams={userStreams} />
+      <StreamControls />
     </div>
   )
 }
