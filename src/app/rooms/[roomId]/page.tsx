@@ -11,7 +11,7 @@ interface User {
   username: string
 }
 
-interface VideoStream extends User {
+interface UserStream extends User {
   stream?: MediaStream
 }
 
@@ -21,8 +21,8 @@ export default function Page({
   params: { roomId: string }
 }) {
   const [users, setUsers] = useState<User[]>([])
-  const [videoStreams, setVideoStreams] = useState<VideoStream[]>([])
-  const [userStream, setUserStream] = useState<MediaStream|null>(null)
+  const [userStreams, setUserStreams] = useState<UserStream[]>([])
+  const [myStream, setMyStream] = useState<MediaStream|null>(null)
   const [username, setUsername] = useState('')
   const [userId, setUserId] = useState(0)
   const [leavingUser, setLeavingUser] = useState<User|null>(null)
@@ -90,14 +90,17 @@ export default function Page({
           setLeavingUser(user)
         })
 
-      setUserStream(userStream)
+      setMyStream(userStream)
       setPeer(peer)
     }
 
     initApp()
 
     return () => {
-      userStream?.getTracks().forEach(track => track.stop())
+      myStream?.getTracks().forEach(track => track.stop())
+      userStreams?.forEach(userStream => {
+        userStream.stream?.getTracks().forEach(track => track.stop())
+      })
       if (peer) {
         peer.disconnect()
       }
@@ -107,20 +110,20 @@ export default function Page({
   // When the guest list arrived,
   // Make the connections to view their video streams
   useEffect(() => {
-    if (!peer || !userStream || users.length === 0) return
+    if (!peer || !myStream || users.length === 0) return
 
     users.forEach(user => {
       const { userId, username, peerId } = user
 
       if (peerId === peer.id) {
-        setVideoStreams(p => [
+        setUserStreams(p => [
           ...p.filter(x => x.peerId !== peerId), 
-          { userId, username, peerId, stream: userStream }
+          { userId, username, peerId, stream: myStream }
         ])
       } else {
-        const call = peer.call(peerId, userStream)
+        const call = peer.call(peerId, myStream)
         call.on('stream', stream => {
-          setVideoStreams(p => [
+          setUserStreams(p => [
             ...p.filter(x => x.peerId !== peerId), 
             { userId, username, peerId, stream }
           ])
@@ -164,10 +167,10 @@ export default function Page({
   useEffect(() => {
     if (!leavingUser) return
 
-    const idx = videoStreams.findIndex(x => x.peerId === leavingUser.peerId)
+    const idx = userStreams.findIndex(x => x.peerId === leavingUser.peerId)
     if (idx >= 0) {
-      videoStreams[idx].stream?.getTracks().forEach(track => track.stop())
-      setVideoStreams(s => s.filter(x => x.peerId !== leavingUser.peerId))
+      userStreams[idx].stream?.getTracks().forEach(track => track.stop())
+      setUserStreams(s => s.filter(x => x.peerId !== leavingUser.peerId))
       setUsers(u => u.filter(x => x.userId !== leavingUser.userId))
     }
   }, [leavingUser])
@@ -178,22 +181,22 @@ export default function Page({
       <div ref={containerRef} className="grow flex flex-row gap-4">
         <div className="grow flex items-center justify-center">
           <div className={`grow grid grid-cols-${numCols} gap-4 ` + (numCols === 1 ? 'max-w-[900px]' : '')}>
-            {videoStreams.map(videoStream => (
+            {userStreams.map(userStream => (
               <div 
-                key={videoStream.userId} 
+                key={userStream.userId} 
                 className="relative bg-gray-100 flex items-center justify-center" 
                 style={{height: `${videoHeight}px`}}
               >
                 <video 
                   ref={(video) => {
-                    if (video) video.srcObject = videoStream.stream || null
+                    if (video) video.srcObject = userStream.stream || null
                   }}
                   className="w-full h-full scale-x-[-1] object-cover"
                   autoPlay
                   muted
                 />
-                <span className="absolute bottom-2 left-2 px-4 rounded-full bg-gray-800/50 text-white font-bold">
-                  {videoStream.username}
+                <span className="absolute bottom-2 left-2 px-2 rounded-full bg-gray-800/50 text-white font-bold">
+                  {userStream.username}
                 </span>
               </div>
             ))}
