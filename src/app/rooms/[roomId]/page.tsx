@@ -1,27 +1,27 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import io from 'socket.io-client'
+import io, { Socket } from 'socket.io-client'
 import { Peer } from 'peerjs'
-import { StreamControls } from '@/app/components'
-import { UserStreams } from '../components'
-import { type User, type UserStream } from '@/app/lib/types'
+import { UserStreams, StreamControls } from '../components'
+import { type Participant } from '@/app/lib/types'
 
 export default function Page({
   params: { roomId }
 }: {
   params: { roomId: string }
 }) {
-  const [users, setUsers] = useState<User[]>([])
-  const [userStreams, setUserStreams] = useState<UserStream[]>([])
+  const [participants, setParticipants] = useState<{[userId: string]: Participant}>({})
   const [myStream, setMyStream] = useState<MediaStream|null>(null)
   const [username, setUsername] = useState('')
   const [userId, setUserId] = useState('')
-  const [leavingUser, setLeavingUser] = useState<User|null>(null)
+
+  const [socket, setSocket] = useState<Socket>()
   const [peer, setPeer] = useState<Peer>()
 
   // On page load,
-  // Generate random username and ID and handle window resizes 
+  // 1. Generate random username and ID and handle window resizes 
+  // 2. Init user's camera
   useEffect(() => {
     let chars = 'abcdefghijklmnopqrstuvwxyz'
     let username = ''
@@ -33,99 +33,101 @@ export default function Page({
     }
     setUsername(username)
     setUserId(`${userId}`)
-  }, [])
 
-  // After user ID and username are set,
-  // Setup the WebRTC and connect to the signaling server on start
-  useEffect(() => {
-    if (!userId || !username) return 
-
-    async function initMyStream() {
-      const userStream = await navigator.mediaDevices.getUserMedia({
+    async function initCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true
       })
-
-      const socket = io('http://localhost:3001')
-      const peer = new Peer()
-
-      peer
-        .on('open', peerId => {
-          socket.emit('join-room', { roomId, peerId, userId, username })
-        })
-        .on('call', call => { 
-          call.answer(userStream)
-        })
-        .on('error', err => {
-          console.error(err)
-        })
-
-      socket
-        .on('guest-list', (guests: User[]) => {
-          setUsers(guests)
-        })
-        .on('leave-room', (user: User) => {
-          setLeavingUser(user)
-        })
-
-      setMyStream(userStream)
-      setPeer(peer)
+      setMyStream(stream)
     }
 
-    initMyStream()
+    initCamera()
+  }, [])
+
+  // After user ID and username are set,
+  // Setup PeerJS and connect to the signaling server 
+  useEffect(() => {
+    if (!userId || !username) return 
+
+    const socket = io('http://localhost:3001')
+    const peer = new Peer()
+
+    peer
+      .on('open', peerId => {
+        socket.emit('join-room', { roomId, peerId, userId, username })
+      })
+      .on('call', call => { 
+        if (myStream) {
+          call.answer(myStream)
+        }
+      })
+      .on('error', err => {
+        console.error(err)
+      })
+
+    socket.on('guest-list', (guests: {[userId: string]: Participant}) => {
+      for (const key in guests) {
+        const guest = guests[key]
+        if (guest.userId === userId) {
+          setParticipants(prevState => {
+            const newState = {...prevState}
+            newState[userId] = {...guest, stream: myStream}
+            return newState
+          })
+        } else {
+          if (myStream && peer) {
+            const call = peer.call(guest.peerId, myStream)
+            call.on('stream', stream => {
+              setParticipants(prevState => {
+                const newState = {...prevState}
+                newState[guest.userId] = {...guest, stream }
+                return newState
+              })
+            })
+          }
+        }
+      }
+    })
+
+    socket.on('leave-room', (userId: string) => {
+      setParticipants(prevState => {
+        const newState = {...prevState}
+        delete newState[userId]
+        return newState
+      })
+    })
+
+    setPeer(peer)
+    setSocket(socket)
 
     return () => {
       myStream?.getTracks().forEach(track => track.stop())
-      userStreams?.forEach(userStream => {
-        userStream.stream?.getTracks().forEach(track => track.stop())
-      })
+      for (const userId in participants) {
+        participants[userId].stream?.getTracks().forEach(track => track.stop())
+      }
       if (peer) {
         peer.disconnect()
       }
     }
-  }, [userId, username])
+  }, [userId, username, myStream])
 
-  // When the guest list arrived,
-  // Make the connections to view their video streams
-  useEffect(() => {
-    if (!peer || !myStream || users.length === 0) return
-
-    users.forEach(user => {
-      const { userId, username, peerId } = user
-
-      if (peerId === peer.id) {
-        setUserStreams(p => [
-          ...p.filter(x => x.peerId !== peerId), 
-          { userId, username, peerId, stream: myStream }
-        ])
-      } else {
-        const call = peer.call(peerId, myStream)
-        call.on('stream', stream => {
-          setUserStreams(p => [
-            ...p.filter(x => x.peerId !== peerId), 
-            { userId, username, peerId, stream }
-          ])
-        })
-      }
-    })
-  }, [users])
-
-  // When a user is leaving,
-  // Remove the video streams from page
-  useEffect(() => {
-    if (!leavingUser) return
-
-    const idx = userStreams.findIndex(x => x.peerId === leavingUser.peerId)
-    if (idx >= 0) {
-      userStreams[idx].stream?.getTracks().forEach(track => track.stop())
-      setUserStreams(s => s.filter(x => x.peerId !== leavingUser.peerId))
-      setUsers(u => u.filter(x => x.userId !== leavingUser.userId))
+  async function handleToggleCamera() {
+    if (myStream) {
+      myStream.getTracks().forEach(track => track.stop())
+      setMyStream(null)
+    } else {
     }
-  }, [leavingUser])
+  }
 
   return (
     <div className="p-4 w-full h-full flex flex-col">
-      <UserStreams userId={userId} numUsers={users.length} userStreams={userStreams} />
+      <UserStreams 
+        userId={userId} 
+        participants={participants} 
+        onToggleCamera={handleToggleCamera}
+      />
+
       <StreamControls />
     </div>
   )

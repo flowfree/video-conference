@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { StreamControls } from '@/app/components'
+import { StreamControls } from '@/app/rooms/components'
 
 export default function Page() {
   const [numCols, setNumCols] = useState(1)
@@ -10,7 +10,7 @@ export default function Page() {
 
   const videoStreams: string[] = [
     // '/api/stream/1',
-    // '/api/stream/2',
+    '/api/stream/2',
     // '/api/stream/3',
     // '/api/stream/4',
     // '/api/stream/5',

@@ -1,21 +1,26 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { type UserStream } from '@/app/lib/types'
+import { type Participant } from '@/app/lib/types'
 
 export function UserStreams({
   userId,
-  numUsers,
-  userStreams
+  participants,
+  onToggleCamera
 }: {
   userId: string
-  numUsers: number
-  userStreams: UserStream[]
+  participants: {[userId: string]: Participant},
+  onToggleCamera?: () => void
 }) {
   const [numCols, setNumCols] = useState(1)
   const [videoHeight, setVideoHeight] = useState(0)
   const [windowResized, setWindowResized] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const participantArray: Participant[] = []
+  for (const key in participants) {
+    participantArray.push(participants[key])
+  }
 
   // On page load,
   // Set the evant handler to flag if window resized
@@ -38,6 +43,7 @@ export function UserStreams({
     }
 
     let height = containerRef.current!.clientHeight
+    const numUsers = participantArray.length
 
     if (numUsers === 1) {
       setVideoHeight(height -= 48)
@@ -57,35 +63,41 @@ export function UserStreams({
     }
 
     setWindowResized(false)
-  }, [numUsers, windowResized])
+  }, [participantArray, windowResized])
 
   return (
     <div ref={containerRef} className="grow flex flex-row gap-4">
       <div className="grow flex items-center justify-center">
         <div className={`grow grid grid-cols-${numCols} gap-4 ` + (numCols === 1 ? 'max-w-[900px]' : '')}>
-          {userStreams.map(userStream => (
+          {participantArray.map(participant => (
             <div 
-              key={userStream.userId} 
+              key={participant.userId} 
               className="relative bg-gray-100 flex items-center justify-center" 
               style={{height: `${videoHeight}px`}}
             >
-              <video 
-                ref={(video) => {
-                  if (video) video.srcObject = userStream.stream || null
-                }}
-                className="w-full h-full scale-x-[-1] object-cover"
-                autoPlay
-                muted
-              />
+              {participant.videoEnabled ? (
+                <video 
+                  ref={(video) => {
+                    if (video) video.srcObject = participant.stream || null
+                  }}
+                  className="w-full h-full scale-x-[-1] object-cover"
+                  autoPlay
+                  muted
+                />
+              ) : (
+                <div className="w-full h-full object-cover flex items-center justify-center bg-gray-100">
+                  <img src={`https://i.pravatar.cc/150`} className="w-24 h-24 rounded-full" alt="" />
+                </div>
+              )}
               <span className="absolute bottom-2 left-2 px-2 rounded-full bg-gray-800/50 text-white font-bold">
-                {userStream.username}
+                {participant.username}
               </span>
-              {userStream.userId == `${userId}` && (
+              {participant.userId == `${userId}` && (
                 <div className="absolute bottom-2 right-2 flex gap-2">
-                  <button className="px-2 bg-indigo-600 text-white text-sm">
-                    Mic
-                  </button>
-                  <button className="px-2 bg-indigo-600 text-white text-sm">
+                  <button 
+                    className="px-2 bg-indigo-600 text-white text-sm"
+                    onClick={() => onToggleCamera && onToggleCamera()}
+                  >
                     Cam
                   </button>
                 </div>

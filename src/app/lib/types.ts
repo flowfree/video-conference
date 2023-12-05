@@ -1,9 +1,7 @@
-export interface User {
-  peerId: string
+export interface Participant {
   userId: string
   username: string
-}
-
-export interface UserStream extends User {
+  videoEnabled: boolean
+  peerId: string
   stream: MediaStream | null
 }
