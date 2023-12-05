@@ -43,15 +43,28 @@ export default function Page({
     }
 
     initCamera()
-  }, [])
-
-  // After user ID and username are set,
-  // Setup PeerJS and connect to the signaling server 
-  useEffect(() => {
-    if (!userId || !username) return 
 
     const socket = io('http://localhost:3001')
     const peer = new Peer()
+
+    setSocket(socket)
+    setPeer(peer)
+
+    return () => {
+      myStream?.getTracks().forEach(track => track.stop())
+      for (const userId in participants) {
+        participants[userId].stream?.getTracks().forEach(track => track.stop())
+      }
+      if (peer) {
+        peer.disconnect()
+      }
+    }
+  }, [])
+
+  // After connected to the signaling server and PeerJS is ready,
+  // Setup event handlers for PeerJS and the socket connection
+  useEffect(() => {
+    if (!peer || !socket) return 
 
     peer
       .on('open', peerId => {
@@ -100,17 +113,7 @@ export default function Page({
 
     setPeer(peer)
     setSocket(socket)
-
-    return () => {
-      myStream?.getTracks().forEach(track => track.stop())
-      for (const userId in participants) {
-        participants[userId].stream?.getTracks().forEach(track => track.stop())
-      }
-      if (peer) {
-        peer.disconnect()
-      }
-    }
-  }, [userId, username, myStream])
+  }, [peer, socket, myStream])
 
   async function handleToggleCamera() {
     if (myStream) {
